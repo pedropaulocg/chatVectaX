@@ -4,6 +4,12 @@
     - Em negociação (Amarelo)
     - Vendido (Verde)
     - Venda perdida (vermelho)
+
+    Aumentar lado esquerdo verticalmente
+    Aumentar card de contato
+    Adicionar tags nos cards
+    Adicionar barra lateral de departamento
+    Adicionar icone de wpp
  -->
 <template>
   <v-layout row>
@@ -53,60 +59,84 @@
         </b-input-group>
       </div>
 
-      <b-tabs
-        content-class="mt-3"
-        active-nav-item-class="bg-primary text-light"
-        class="mt-3"
-        fill
-      >
+      <b-tabs active-nav-item-class="bg-primary text-light" class="mt-3" fill>
         <b-tab active>
           <template #title>
             <b-icon icon="check-circle"></b-icon> Ativos
             <span class="badge bg-light text-dark ms-1">4</span>
           </template>
-          <div
-            class="d-flex gap-2 p-2"
-            v-for="conversa in conversas"
-            :key="conversa.id"
-            style="
-              border-bottom: 1px solid #e7e7e7;
-              padding-left: 20px !important;
-              cursor: pointer;
-            "
-            @mouseenter="conversa.showDropdown = !conversa.showDropdown"
-            @mouseleave="conversa.showDropdown = !conversa.showDropdown"
-          >
-            <div>
-              <b-avatar variant="info" :src="avatarImg" size="4rem"></b-avatar>
-            </div>
-            <div style="flex-basis: 75%">
-              <h6 class="m-0">{{ conversa.nome }}</h6>
-              <p class="preview">
-                {{ conversa.ultimaMsg }}
-              </p>
-            </div>
-            <div class="d-flex flex-column align-items-center">
-              <p class="m-0">{{ conversa.horario }}</p>
+          <div class="contactContainer">
+            <div
+              class="d-flex gap-2 p-3 justify-content-between"
+              v-for="conversa in conversas"
+              :key="conversa.id"
+              style="
+                border-bottom: 1px solid #e7e7e7;
+                padding-left: 20px !important;
+                cursor: pointer;
+                max-height: 80px;
+              "
+              :style="'box-shadow: inset 1.3em 0 ' + conversa.departamentoColor"
+              @mouseenter="conversa.showDropdown = !conversa.showDropdown"
+              @mouseleave="conversa.showDropdown = !conversa.showDropdown"
+            >
               <div class="d-flex align-items-center">
-                <b-avatar
-                  :text="conversa.notificacao"
-                  size="18px"
-                  style="background: #054d86; color: #fff"
-                ></b-avatar>
-                <b-dropdown
-                  size="md"
-                  variant="link"
-                  toggle-class="text-decoration-none"
-                  v-if="conversa.showDropdown"
-                >
-                  <b-dropdown-item
-                    ><b-icon icon="pin"></b-icon> Fixar no topo</b-dropdown-item
+                <div class="d-flex align-items-end">
+                  <b-avatar
+                    variant="info"
+                    :src="avatarImg"
+                    size="4rem"
+                  ></b-avatar>
+                  <img
+                    src="./assets/wppLogo.svg"
+                    alt=""
+                    style="position: relative; left: -15px"
+                  />
+                </div>
+                <div>
+                  <h6 class="m-0">{{ conversa.nome }}</h6>
+                  <p class="preview">
+                    {{ conversa.ultimaMsg }}
+                  </p>
+                </div>
+              </div>
+              <div class="tagPreview d-flex flex-column flex-wrap gap-2">
+                <span
+                  style="
+                    width: 0.8vw;
+                    display: block;
+                    height: 10px;
+                    border-radius: 5px;
+                  "
+                  v-for="tag in tags"
+                  :key="tag.id"
+                  :style="'background:' + tag.color"
+                ></span>
+              </div>
+              <div class="d-flex flex-column align-items-center">
+                <p class="m-0">{{ conversa.horario }}</p>
+                <div class="d-flex align-items-center">
+                  <b-avatar
+                    :text="conversa.notificacao"
+                    size="18px"
+                    style="background: #054d86; color: #fff"
+                  ></b-avatar>
+                  <b-dropdown
+                    size="md"
+                    variant="link"
+                    toggle-class="text-decoration-none"
+                    v-if="conversa.showDropdown"
                   >
-                  <b-dropdown-item
-                    ><b-icon icon="trash"></b-icon> Encerrar
-                    conversa</b-dropdown-item
-                  >
-                </b-dropdown>
+                    <b-dropdown-item
+                      ><b-icon icon="pin"></b-icon> Fixar no
+                      topo</b-dropdown-item
+                    >
+                    <b-dropdown-item
+                      ><b-icon icon="trash"></b-icon> Encerrar
+                      conversa</b-dropdown-item
+                    >
+                  </b-dropdown>
+                </div>
               </div>
             </div>
           </div>
@@ -255,7 +285,15 @@
                 ></b-icon>
               </div>
               <div class="d-flex flex-column align-items-center">
-                <b-avatar :src="avatarImg" size="10rem"></b-avatar>
+                <b-avatar
+                  :src="avatarImg"
+                  size="10rem"
+                  :style="
+                    statusShadow
+                      ? `box-shadow: 0px 0px 1.5em ${statusShadow}`
+                      : ''
+                  "
+                ></b-avatar>
                 <b-button
                   variant="transparent"
                   pill
@@ -271,7 +309,7 @@
                 class="p-2"
                 style="border-top: 1px solid #e7e7e7; margin-top: 15px"
               >
-                <h5><b-icon icon="person-fill"></b-icon> Status</h5>
+                <h5><b-icon icon="person-lines-fill"></b-icon> Status</h5>
                 <b-form-select
                   v-model="selectedStatus"
                   :options="optionStatus"
@@ -499,6 +537,12 @@ export default {
     avatarImg: "http://www.colatina.es.gov.br/helpdesk/images/no-image.png",
     openMidia: undefined,
     selectedStatus: undefined,
+    statusShadow: undefined,
+    tags: [
+      { id: Math.random(), nome: "Tag 1", color: "red", darkText: "true" },
+      { id: Math.random(), nome: "Tag 2", color: "yellow", darkText: "true" },
+      { id: Math.random(), nome: "Tag 3", color: "green", darkText: "true" },
+    ],
     camposPersonalizados: [
       { id: Math.random(), nome: undefined, valor: undefined },
     ],
@@ -597,6 +641,7 @@ export default {
         horario: "17:00",
         notificacao: "3",
         showDropdown: false,
+        departamentoColor: "blue",
       },
       {
         id: Math.random(),
@@ -606,6 +651,7 @@ export default {
         horario: "17:00",
         notificacao: "3",
         showDropdown: false,
+        departamentoColor: "cyan",
       },
       {
         id: Math.random(),
@@ -615,6 +661,167 @@ export default {
         horario: "17:00",
         notificacao: "3",
         showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
+      },
+      {
+        id: Math.random(),
+        nome: "André",
+        ultimaMsg:
+          "Ola tudo bem jasdnflkjasdnflakjsdnflakjsdnfalkjsdnfalksjdnfaslkdjfnaskldfjn",
+        horario: "17:00",
+        notificacao: "3",
+        showDropdown: false,
+        departamentoColor: "tomato",
       },
     ],
     mensagens: [
@@ -658,23 +865,50 @@ export default {
       return preview;
     },
   },
+  watch: {
+    selectedStatus() {
+      switch (this.selectedStatus) {
+        case "pendente":
+          this.statusShadow = "#ffa500";
+          break;
+        case "contratoFeito":
+          this.statusShadow = "#009aff";
+          break;
+        case "emNegociacao":
+          this.statusShadow = "#ffff00";
+          break;
+        case "vendido":
+          this.statusShadow = "#00ff00";
+          break;
+        case "vendaPerdida":
+          this.statusShadow = "#ff0000";
+          break;
+        default:
+          this.statusShadow = undefined;
+      }
+    },
+  },
 };
 </script>
 <style>
+* ::-webkit-scrollbar {
+  width: 4px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(201, 201, 201);
+  border-radius: 5px;
+}
 html {
-  overflow-y: auto !important;
   font-size: 0.8rem !important;
 }
-html::-webkit-scrollbar {
-  width: 8px;
-}
-html::-webkit-scrollbar-thumb {
-  background: rgb(133, 133, 133);
+body {
+  overflow: hidden !important;
 }
 .preview {
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 300px;
+  max-width: 200px;
+  margin-top: 2px;
   white-space: nowrap;
 }
 .noChat {
@@ -788,13 +1022,24 @@ html::-webkit-scrollbar-thumb {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.contactContainer {
+  overflow-y: scroll;
+  max-height: 82vh;
+}
 @media (max-width: 1700px) {
+  body {
+    overflow: hidden !important;
+  }
   html {
-    overflow-y: auto !important;
-    font-size: 0.65rem !important;
+    font-size: 0.6rem !important;
   }
   .preview {
-    max-width: 200px;
+    max-width: 150px;
+  }
+}
+@media (max-height: 768px) {
+  .contactContainer {
+    max-height: 80vh;
   }
 }
 </style>
