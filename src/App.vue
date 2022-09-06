@@ -5,15 +5,19 @@
     - Vendido (Verde)
     - Venda perdida (vermelho)
 
-    Aumentar lado esquerdo verticalmente
-    Aumentar card de contato
-    Adicionar tags nos cards
-    Adicionar barra lateral de departamento
-    Adicionar icone de wpp
+
+    Adicionar atalhos no painel do chat
+
+    Remover sideBar e adicionar dropdown
+    adicionar switch de on/off
  -->
 <template>
-  <v-layout row>
-    <v-flex lg3 class="p-0" style="border-right: 1px solid #c1c1c1 !important">
+  <b-row>
+    <b-col
+      lg="3"
+      class="p-0"
+      style="border-right: 1px solid #c1c1c1 !important"
+    >
       <div class="d-flex align-items-center justify-content-between p-2">
         <button class="buttonNavchat novoCtt" variant="transparent">
           <b-icon icon="plus-lg" font-scale="2rem"></b-icon>
@@ -100,19 +104,7 @@
                   </p>
                 </div>
               </div>
-              <div class="tagPreview d-flex flex-column flex-wrap gap-2">
-                <span
-                  style="
-                    width: 0.8vw;
-                    display: block;
-                    height: 10px;
-                    border-radius: 5px;
-                  "
-                  v-for="tag in tags"
-                  :key="tag.id"
-                  :style="'background:' + tag.color"
-                ></span>
-              </div>
+
               <div class="d-flex flex-column align-items-center">
                 <p class="m-0">{{ conversa.horario }}</p>
                 <div class="d-flex align-items-center">
@@ -161,8 +153,8 @@
           <p class="p-3">Tab contents 1</p>
         </b-tab>
       </b-tabs>
-    </v-flex>
-    <v-flex lg9 class="p-0" style="overflow: hidden !important">
+    </b-col>
+    <b-col lg="9" class="p-0" style="overflow: hidden !important">
       <div class="noChat" v-if="!chatOpen"></div>
       <div v-else class="p-0 bg-light p-0 chat">
         <div
@@ -186,33 +178,38 @@
               <b-icon icon="search"></b-icon>
               <span> Buscar</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent">
+            <b-button class="buttonNavchat" variant="transparent" @click.stop>
               <b-icon icon="file-text"></b-icon>
               <span> Notas</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent">
+            <b-button class="buttonNavchat" variant="transparent" @click.stop>
               <b-icon icon="chat-right-dots-fill"></b-icon>
               <span> Mensagens agendadas</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent">
+            <b-button class="buttonNavchat" variant="transparent" @click.stop>
               <b-icon icon="clock-history"></b-icon>
               <span> Histórico</span>
             </b-button>
             <b-button class="buttonNavchat" variant="transparent">
               <b-icon icon="plug-fill"></b-icon>
-              <span> Teste</span>
+              <span> Integrações</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent">
+            <b-button class="buttonNavchat" variant="transparent" @click.stop>
               <b-icon icon="funnel-fill"></b-icon>
               <span> Funil</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent">
+            <b-button
+              class="buttonNavchat"
+              variant="transparent"
+              @click.stop="$bvModal.show('transferirAtendimento')"
+            >
               <b-icon icon="arrow-left-right"></b-icon>
               <span> Transferir</span>
             </b-button>
             <b-button
               variant="danger"
               style="color: #fff; box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25)"
+              @click.stop
             >
               <b-icon icon="telephone-x-fill"></b-icon>
               <span></span> Finalizar chamado
@@ -244,13 +241,62 @@
               </div>
             </div>
             <div class="chatPainel">
-              <b-button variant="primary">
-                <b-icon
-                  icon="paperclip"
-                  style="color: #fff"
-                  rotate="40"
-                ></b-icon>
-              </b-button>
+              <div class="chatMenuPainel">
+                <ul v-if="painelMenu">
+                  <li>
+                    <b-button
+                      pill
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="link45deg"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      pill
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="list"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      pill
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="list-check"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      pill
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="hash"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      pill
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="image"></b-icon>
+                    </b-button>
+                  </li>
+                </ul>
+                <b-button variant="primary" @click="painelMenu = !painelMenu">
+                  <b-icon
+                    icon="paperclip"
+                    style="color: #fff"
+                    rotate="40"
+                  ></b-icon>
+                </b-button>
+              </div>
               <b-button variant="primary">
                 <b-icon icon="emoji-smile" style="color: #fff"></b-icon>
               </b-button>
@@ -274,6 +320,7 @@
               height: 91.5vh;
               overflow-x: hidden;
             "
+            v-if="infoOpen"
             :style="infoOpen ? 'flex-basis: 25%' : 'flex-basis: 0;'"
           >
             <div>
@@ -409,7 +456,7 @@
           </div>
         </div>
       </div>
-    </v-flex>
+    </b-col>
 
     <!-- SideBar do usuario logado -->
     <b-sidebar id="sidebarUserInfo" left backdrop width="25%" shadow>
@@ -422,9 +469,6 @@
       <div>
         <button class="btnSideMenu">
           <b-icon icon="box-arrow-up-right"></b-icon> Atalhos
-        </button>
-        <button class="btnSideMenu">
-          <b-icon icon="clock-history"></b-icon> Historico
         </button>
         <button class="btnSideMenu">
           <b-icon icon="chat-left-quote"></b-icon> Mensagens de ausência
@@ -484,6 +528,36 @@
       </template>
     </b-modal>
 
+    <!-- modal transferir atendimento -->
+    <b-modal id="transferirAtendimento" centered size="md">
+      <template #modal-header="{ close }">
+        <b-button size="sm" variant="outline-danger" @click="close()">
+          <b-icon icon="x"></b-icon>
+        </b-button>
+      </template>
+      <div>
+        <b-form-select
+          v-model="departamentoModal"
+          :options="departamentoModalOp"
+        ></b-form-select>
+        <b-form-select
+          :disabled="!departamentoModal"
+          v-model="atendenteModal"
+          :options="atendenteModalOp"
+        ></b-form-select>
+      </div>
+      <template #modal-footer="{ ok }">
+        <b-button
+          size="sm"
+          variant="primary"
+          style="color: #fff !important"
+          @click="ok()"
+        >
+          OK
+        </b-button>
+      </template>
+    </b-modal>
+
     <!-- Modal midias -->
     <b-modal id="modalMidia" size="lg" no-close-on-esc>
       <template #modal-header="{ close }">
@@ -523,7 +597,7 @@
         <img :src="midias[openMidia].src" alt="" />
       </div>
     </div>
-  </v-layout>
+  </b-row>
 </template>
 
 <script>
@@ -531,13 +605,29 @@ export default {
   name: "App",
 
   data: () => ({
-    message: undefined,
     chatOpen: true,
+    departamentoModal: undefined,
+    atendenteModal: undefined,
     infoOpen: true,
-    avatarImg: "http://www.colatina.es.gov.br/helpdesk/images/no-image.png",
+    infoContato: true,
+    buscar: false,
+    integracao: false,
+    painelMenu: false,
+    message: undefined,
     openMidia: undefined,
     selectedStatus: undefined,
     statusShadow: undefined,
+    avatarImg: "http://www.colatina.es.gov.br/helpdesk/images/no-image.png",
+    departamentoModalOp: [
+      { value: "diretoria", text: "Diretoria" },
+      { value: "vendas", text: "Vendas" },
+      { value: "suporte", text: "Suporte" },
+    ],
+    atendenteModalOp: [
+      { value: "wanderley", text: "Wanderley" },
+      { value: "andre", text: "Andre" },
+      { value: "pedro", text: "Pedro" },
+    ],
     tags: [
       { id: Math.random(), nome: "Tag 1", color: "red", darkText: "true" },
       { id: Math.random(), nome: "Tag 2", color: "yellow", darkText: "true" },
@@ -858,8 +948,8 @@ export default {
   },
   computed: {
     previewMidias() {
-      var preview = [];
-      for (var i = 0; i < 3; i++) {
+      let preview = [];
+      for (let i = 0; i < 3; i++) {
         preview[i] = this.midias[i];
       }
       return preview;
@@ -900,6 +990,7 @@ export default {
 }
 html {
   font-size: 0.8rem !important;
+  overflow: hidden !important;
 }
 body {
   overflow: hidden !important;
@@ -980,8 +1071,9 @@ body {
   padding: 10px 20px;
 }
 .chatPainel {
+  height: 50px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   padding: 10px 20px;
   background: #fff;
   gap: 1rem;
@@ -1026,11 +1118,19 @@ body {
   overflow-y: scroll;
   max-height: 82vh;
 }
+.chatMenuPainel ul {
+  list-style-type: none;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 @media (max-width: 1700px) {
   body {
     overflow: hidden !important;
   }
   html {
+    overflow: hidden !important;
     font-size: 0.6rem !important;
   }
   .preview {
