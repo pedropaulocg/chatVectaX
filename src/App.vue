@@ -1,18 +1,14 @@
 <!-- 
     adicionar switch de on/off
-    adicionar arquivo em agendar mensagem
     adicionar badge em conexão departamento e usuario
     aumentar tabs
-    remover detalhes do perfil
-    descer 3 botões para o lado de buscar
-    add ver todos
     copiar chat 2
  -->
 <template>
   <b-row>
     <b-col
       lg="3"
-      class="p-0"
+      class="pr-0"
       style="border-right: 1px solid #c1c1c1 !important"
     >
       <div class="d-flex align-items-center justify-content-between p-2">
@@ -20,26 +16,31 @@
           <b-icon icon="plus-lg" font-scale="2rem"></b-icon>
           <span> Novo Contato</span>
         </button>
-        <div class="d-flex gap-2 p-2">
-          <b-avatar variant="info" :src="avatarImg" size="4rem"></b-avatar>
-          <div>
-            <h5 class="m-0">Atendente 1</h5>
-            <p>
-              Online
-              <b-icon
-                icon="circle-fill"
-                variant="success"
-                font-scale="0.5"
-              ></b-icon>
-            </p>
-          </div>
-        </div>
+      </div>
+      <div class="p-3 d-flex">
+        <b-input-group class="mt-1">
+          <b-form-input size="lg"></b-form-input>
+          <b-input-group-append>
+            <b-button
+              style="
+                border-radius: 0px 5px 5px 0 !important;
+                background: #054d86;
+                color: #fff;
+              "
+              ><b-icon
+                icon="search"
+                variant="light
+            "
+              ></b-icon
+            ></b-button>
+          </b-input-group-append>
+        </b-input-group>
         <b-dropdown
           size="lg"
           variant="transparent"
           toggle-class="text-decoration-none"
           no-caret
-          class="removeBorder"
+          class="removeBorder p-0"
         >
           <template #button-content>
             <b-icon icon="three-dots-vertical"></b-icon>
@@ -56,31 +57,26 @@
           </b-dropdown-item>
         </b-dropdown>
       </div>
-      <div class="p-3">
-        <b-input-group class="mt-1">
-          <b-form-input></b-form-input>
-          <b-input-group-append>
-            <b-button
-              style="
-                border-radius: 0px 5px 5px 0 !important;
-                background: #054d86;
-                color: #fff;
-              "
-              ><b-icon
-                icon="search"
-                variant="light
-            "
-              ></b-icon
-            ></b-button>
-          </b-input-group-append>
-        </b-input-group>
-      </div>
-
-      <b-tabs active-nav-item-class="bg-primary text-light" class="mt-3" fill>
+      <b-form-checkbox
+        v-model="checked"
+        class="ml-3"
+        name="check-button"
+        size="lg"
+        switch
+      >
+        Todos
+      </b-form-checkbox>
+      <b-tabs
+        active-nav-item-class="bg-primary text-light notificationColor"
+        class="mt-3"
+        fill
+      >
         <b-tab active>
           <template #title>
-            <b-icon icon="check-circle"></b-icon> Ativos
-            <span class="badge bg-light text-dark ms-1">4</span>
+            <b-icon icon="check-circle" font-scale="2rem"></b-icon>
+            <div>
+              Ativos <span class="badge bg-primary text-light ml-2">4</span>
+            </div>
           </template>
           <div class="contactContainer">
             <div
@@ -93,7 +89,7 @@
                 cursor: pointer;
                 max-height: 80px;
               "
-              :style="'box-shadow: inset 1.3em 0 ' + conversa.departamentoColor"
+              :style="'box-shadow: inset 0.5em 0 ' + conversa.departamentoColor"
               @mouseenter="conversa.showDropdown = !conversa.showDropdown"
               @mouseleave="conversa.showDropdown = !conversa.showDropdown"
             >
@@ -148,26 +144,34 @@
         </b-tab>
 
         <b-tab>
-          <template #title> <b-icon icon="alarm"></b-icon> Em espera </template>
+          <template #title>
+            <b-icon icon="alarm" font-scale="2rem"></b-icon>
+            <div>
+              Em espera <span class="badge bg-primary text-light ml-2">4</span>
+            </div>
+          </template>
+
           <p class="p-3">Tab contents 1</p>
         </b-tab>
 
         <b-tab>
           <template #title>
-            <b-icon icon="person-circle"></b-icon> Contatos
+            <b-icon icon="person-circle" font-scale="2rem"></b-icon>
+            <div>Contatos</div>
           </template>
           <p class="p-3">Tab contents 1</p>
         </b-tab>
 
         <b-tab>
           <template #title>
-            <b-icon icon="inboxes"></b-icon> Chat interno
+            <b-icon icon="inboxes" font-scale="2rem"></b-icon>
+            <div>Chat interno</div>
           </template>
           <p class="p-3">Tab contents 1</p>
         </b-tab>
       </b-tabs>
     </b-col>
-    <b-col lg="9" class="p-0" style="overflow: hidden !important">
+    <b-col lg="9" class="pl-0" style="overflow: hidden !important">
       <div class="noChat" v-if="!chatOpen"></div>
       <div v-else class="p-0 bg-light p-0 chat">
         <div
@@ -462,7 +466,6 @@
                 <b-form-select
                   v-model="selectedStatus"
                   :options="optionStatus"
-                  placeholder="Selecione uma opção"
                   style="
                     border: 1px solid #b7b7b7;
                     width: 100%;
@@ -564,6 +567,7 @@
 
     <b-modal id="modalCamposPersonalizados" size="lg">
       <template #modal-header="{ close }">
+        <h3>Adicionar campos personalizados</h3>
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -882,8 +886,8 @@
           </select>
         </b-col>
       </b-row>
+      <label style="font-size: 16px" class="mt-2">Data e hora</label>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Data e hora</p>
         <b-col lg="6">
           <b-form-datepicker
             id="example-datepicker"
@@ -898,8 +902,8 @@
           ></b-form-timepicker>
         </b-col>
       </b-row>
+      <label style="font-size: 16px" class="mt-2">Mensagem</label>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Mensagem</p>
         <b-col lg="12">
           <b-form-textarea
             id="mensgemAgendada"
@@ -910,12 +914,14 @@
           ></b-form-textarea>
         </b-col>
       </b-row>
+      <p style="font-size: 16px" class="mt-2">Arquivo</p>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Arquivo</p>
         <b-col lg="12">
-          <b-form-group label="Small:" label-cols-sm="2" label-size="sm">
-            <b-form-file id="file-small" size="sm"></b-form-file>
-          </b-form-group>
+          <b-form-file
+            id="fileAgendar"
+            size="md"
+            placeholder="Selecione um arquivo"
+          ></b-form-file>
         </b-col>
       </b-row>
       <template #modal-footer="{ ok }">
@@ -971,6 +977,7 @@
     <!-- Modal midias -->
     <b-modal id="modalMidia" size="lg" no-close-on-esc>
       <template #modal-header="{ close }">
+        <h3>Mídias</h3>
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -1017,8 +1024,11 @@ export default {
   data: () => ({
     chatOpen: true,
     isNote: false,
+    msgTransf: undefined,
+    onlineStatus: false,
     newAtalho: undefined,
     newMsgAtalho: undefined,
+    checked: false,
     nota: undefined,
     departamentoModal: undefined,
     atendenteModal: undefined,
@@ -1616,6 +1626,10 @@ body {
   outline: none !important;
   border-color: transparent !important;
 }
+.notificationColor span {
+  background: #fff !important;
+  color: #000 !important;
+}
 .removeBorder button:hover {
   border: none !important;
   outline: none !important;
@@ -1635,9 +1649,6 @@ body {
 }
 .btnSideMenu {
   color: #054d86;
-  width: 100%;
-  display: block;
-  transition: 0.3s;
   border: none;
   background: inherit;
 }
@@ -1732,13 +1743,13 @@ body {
 .novoCtt {
   position: absolute;
   z-index: 99;
-  top: 90%;
-  left: 0%;
+  top: 87%;
+  left: 10px;
   border-radius: 0 20px 20px 0 !important;
   max-width: 50px;
   background: #054d86 !important;
   color: #fff !important;
-  padding: 20px;
+  padding: 22px;
   padding-left: 10px !important;
 }
 .novoCtt span {
@@ -1772,7 +1783,7 @@ body {
 }
 .atalhoShow {
   position: absolute;
-  bottom: 50px;
+  bottom: 55px;
   background: #fff;
   margin-left: 150px;
   padding: 10px 0;
@@ -1800,6 +1811,13 @@ body {
   }
   .preview {
     max-width: 150px;
+  }
+  .novoCtt {
+    left: 15px;
+    padding: 30px;
+  }
+  .atalhoShow {
+    bottom: 50px;
   }
   .messageContainer {
     max-height: 660px;
