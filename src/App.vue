@@ -1,10 +1,6 @@
 <!-- 
-  tirar sombra e tirar animação dos botões
-  remover tres pontos e deixar com dropdown no botão de on e off
-  subir switch de todos
-  botar obs em motivo de fechamento
-  
- -->
+  add arquivo em atalho
+-->
 <template>
   <b-row>
     <b-col
@@ -40,8 +36,8 @@
           </b-button>
           <b-dropdown right :variant="statusUser ? 'success' : 'danger'">
             <b-dropdown-item>
-              <button class="btnSideMenu">
-                <b-icon icon="chat-left-quote"></b-icon> Mensagens de ausência
+              <button class="btnSideMenu" @click="$bvModal.show('perfilAtt')">
+                <b-icon icon="person-circle"></b-icon> Perfil do atendente
               </button>
             </b-dropdown-item>
           </b-dropdown>
@@ -243,7 +239,11 @@
               <b-icon icon="plug-fill"></b-icon>
               <span> Integrações</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent" @click.stop>
+            <b-button
+              class="buttonNavchat"
+              variant="transparent"
+              @click.stop="openSideMenu('funil')"
+            >
               <b-icon icon="funnel-fill"></b-icon>
               <span> Funil</span>
             </b-button>
@@ -274,35 +274,41 @@
               <div
                 v-for="mensagem in reverterMsg"
                 :key="mensagem.id"
+                class="d-flex align-items-start gap-1"
                 :class="msgType(mensagem.tipo)"
                 @mouseenter="mensagem.showDrop = true"
                 @mouseleave="mensagem.showDrop = false"
               >
-                <b class="m-0" v-if="mensagem.title">{{ mensagem.title }}</b>
-                <p class="m-0" v-if="!mensagem.title">{{ mensagem.texto }}</p>
-                <p class="m-0" v-if="mensagem.obs">
-                  {{ mensagem.obs }} - {{ mensagem.data }} {{ mensagem.hora }}
-                </p>
-                <a
-                  :href="mensagem.path"
-                  download
-                  class="file"
-                  v-if="mensagem.isFile"
-                >
-                  <b-icon icon="file-earmark" font-scale="3rem"></b-icon>
-                  <h5>{{ mensagem.fileName }}</h5>
-                  <b-icon
-                    icon="arrow-down-circle"
-                    font-scale="2rem"
-                    variant="light"
-                  ></b-icon>
-                </a>
-                <div
-                  class="imgMsg"
-                  @click="viewMidia(mensagem.imgPath)"
-                  v-if="mensagem.isImage"
-                  :style="`background-image: url(${mensagem.imgPath})`"
-                ></div>
+                <div>
+                  <b class="m-0" v-if="mensagem.title">{{ mensagem.title }}</b>
+                  <p class="m-0" v-if="!mensagem.title">{{ mensagem.texto }}</p>
+                  <p class="m-0" v-if="mensagem.obs">
+                    {{ mensagem.obs }} - {{ mensagem.data }} {{ mensagem.hora }}
+                  </p>
+                  <a
+                    :href="mensagem.path"
+                    download
+                    class="file"
+                    v-if="mensagem.isFile"
+                  >
+                    <b-icon icon="file-earmark" font-scale="3rem"></b-icon>
+                    <h5>{{ mensagem.fileName }}</h5>
+                    <b-icon
+                      icon="arrow-down-circle"
+                      font-scale="2rem"
+                      variant="light"
+                    ></b-icon>
+                  </a>
+                  <div
+                    class="imgMsg"
+                    @click="viewMidia(mensagem.imgPath)"
+                    v-if="mensagem.isImage"
+                    :style="`background-image: url(${mensagem.imgPath})`"
+                  ></div>
+                  <p class="m-0" v-if="!mensagem.obs" style="text-align: right">
+                    {{ mensagem.hora }}
+                  </p>
+                </div>
                 <b-dropdown
                   v-if="!mensagem.title && mensagem.showDrop"
                   size="md"
@@ -318,9 +324,6 @@
                     ><b-icon icon="trash"></b-icon> Encaminhar</b-dropdown-item
                   >
                 </b-dropdown>
-                <p class="m-0" v-if="!mensagem.obs" style="text-align: right">
-                  {{ mensagem.hora }}
-                </p>
               </div>
             </div>
             <div class="chatPainel">
@@ -490,6 +493,49 @@
                 title="W3Schools Free Online Web Tutorials"
                 fullscreen
               ></iframe>
+            </div>
+            <div v-if="funil">
+              <div>
+                <b-icon
+                  icon="x-lg"
+                  @click="infoOpen = false"
+                  style="cursor: pointer"
+                ></b-icon>
+              </div>
+              <div class="p-4">
+                <div
+                  class="
+                    d-flex
+                    justify-content-between
+                    align-items-end
+                    funil
+                    mt-4
+                  "
+                  v-for="funil in fluxos"
+                  :key="funil.id"
+                >
+                  <div>
+                    <h2>{{ funil.nome }}</h2>
+                    <p>
+                      <b-icon icon="person-check-fill"></b-icon>
+                      {{ funil.users }}
+                    </p>
+                  </div>
+                  <b-button
+                    class="buttonNavchat"
+                    variant="transparent"
+                    v-if="!funil.used"
+                    @click="funil.used = true"
+                  >
+                    <b-icon icon="plus"></b-icon>
+                    <span> Adicionar</span>
+                  </b-button>
+                  <b-button variant="danger" v-else @click="funil.used = false">
+                    <b-icon icon="x"></b-icon>
+                    <span> Remover</span>
+                  </b-button>
+                </div>
+              </div>
             </div>
             <div v-if="buscar" class="p-3">
               <div>
@@ -1108,6 +1154,14 @@
             {{ att.text }}
           </option>
         </select>
+
+        <b-form-textarea
+          class="mt-4"
+          v-model="obsFinalizar"
+          placeholder="Observação..."
+          rows="3"
+          max-rows="6"
+        ></b-form-textarea>
       </div>
       <template #modal-footer="{ ok }">
         <b-button
@@ -1154,6 +1208,48 @@
         </b-button>
       </template>
     </b-modal>
+    <b-modal id="perfilAtt" size="md">
+      <template #modal-header="{ close }">
+        <h3>Perfil do atendente</h3>
+        <b-button size="sm" variant="outline-danger" @click="close()">
+          <b-icon icon="x"></b-icon>
+        </b-button>
+      </template>
+      <div class="d-flex align-items-start gap-4">
+        <img
+          :src="avatarImg"
+          alt=""
+          style="width: 100px; border-radius: 10px"
+        />
+        <div>
+          <div class="d-flex align-items-center">
+            <h3>Atendente</h3>
+            <b-button
+              @click="statusUser = !statusUser"
+              class="ml-2"
+              :variant="statusUser ? 'success' : 'danger'"
+              size="sm"
+              ><b-icon icon="power"></b-icon
+            ></b-button>
+          </div>
+          <p class="m-0">Mensagem de ausência</p>
+          <b-form-select
+            v-model="msgAusenciaSelected"
+            :options="msgAusencia"
+          ></b-form-select>
+        </div>
+      </div>
+      <template #modal-footer="{ ok }">
+        <b-button
+          size="sm"
+          variant="primary"
+          style="color: #fff !important"
+          @click="ok()"
+        >
+          OK
+        </b-button>
+      </template>
+    </b-modal>
 
     <div class="overflow" v-if="openMidia >= 0" @click="openMidia = undefined">
       <div class="imgPreview">
@@ -1184,6 +1280,7 @@ export default {
     newMsgAtalho: undefined,
     checked: false,
     nota: undefined,
+    obsFinalizar: undefined,
     departamentoModal: undefined,
     atendenteModal: undefined,
     infoOpen: true,
@@ -1200,9 +1297,26 @@ export default {
     editAtalhoCode: undefined,
     editAtalhoMsg: undefined,
     statusUser: true,
+    funil: false,
     editAtalhoIndex: 0,
     countEspera: 0,
+    msgAusenciaSelected: null,
     avatarImg: "http://www.colatina.es.gov.br/helpdesk/images/no-image.png",
+    fluxos: [
+      { id: Math.random(), nome: "Teste 1", users: 17, used: true },
+      { id: Math.random(), nome: "Teste 2", users: 2, used: false },
+      { id: Math.random(), nome: "Teste 3", users: 5, used: true },
+      { id: Math.random(), nome: "Teste 4", users: 80, used: false },
+    ],
+    msgAusencia: [
+      {
+        text: "Nenhuma mensagem de ausencia selecionada",
+        value: null,
+      },
+      { text: "Mensagem teste ausencia 1", value: "first" },
+      { text: "Mensagem teste ausencia 2", value: "second" },
+      { text: "Cadastrar nova mensagem", value: "add" },
+    ],
     finalizarAt: [
       { value: "opcao_1", text: "opção 1" },
       { value: "opcao_2", text: "opção 2" },
@@ -1590,7 +1704,7 @@ export default {
         path: "./assets/logoClick.png",
         tipo: "enviada",
         hora: "18:56",
-        showDrop: true,
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1598,7 +1712,7 @@ export default {
         imgPath:
           "data:image/jpeg;base64,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",
         tipo: "enviada",
-        showDrop: true,
+        showDrop: false,
         hora: "18:56",
       },
     ],
@@ -1640,16 +1754,25 @@ export default {
       if (this.infoOpen) {
         if (menu == "buscar") {
           this.buscar = true;
+          this.funil = false;
           this.integracao = false;
           this.infoContato = false;
         }
         if (menu == "integracao") {
           this.integracao = true;
+          this.funil = false;
           this.infoContato = false;
           this.buscar = false;
         }
         if (menu == "info") {
           this.infoContato = true;
+          this.funil = false;
+          this.integracao = false;
+          this.buscar = false;
+        }
+        if (menu == "funil") {
+          this.funil = true;
+          this.infoContato = false;
           this.integracao = false;
           this.buscar = false;
         }
@@ -1662,11 +1785,19 @@ export default {
         }
         if (menu == "integracao") {
           this.integracao = true;
+          this.funil = false;
           this.infoContato = false;
           this.buscar = false;
         }
         if (menu == "info") {
+          this.funil = false;
           this.infoContato = true;
+          this.integracao = false;
+          this.buscar = false;
+        }
+        if (menu == "funil") {
+          this.funil = true;
+          this.infoContato = false;
           this.integracao = false;
           this.buscar = false;
         }
@@ -1781,6 +1912,7 @@ export default {
     },
   },
   watch: {
+    msgAusenciaSelected() {},
     countEspera() {
       notificationAudio.play();
     },
@@ -1882,24 +2014,32 @@ body {
 }
 
 .buttonNavchat {
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   background: #fff !important;
   color: #054d86 !important;
-  max-width: 38px;
   border: none !important;
   white-space: nowrap;
   overflow: hidden;
-  transition: 0.7s !important;
+  transition: 0.3s !important;
+  border: 1px solid #054c866b !important;
 }
-.buttonNavchat span {
+.buttonNavchat:hover {
+  background: #054d86 !important;
+  color: #fff !important;
+}
+.novoCtt span {
   visibility: hidden;
   transition: 0.7s;
 }
-.buttonNavchat:hover {
+.novoCtt:hover {
   max-width: 200px;
   border: none !important;
 }
-.buttonNavchat:hover span {
+.funil {
+  box-shadow: 1px 1px 4px rgb(139, 139, 139);
+  padding: 10px;
+  border-radius: 5px;
+}
+.novoCtt:hover span {
   visibility: visible;
 }
 .chat {
@@ -1935,7 +2075,7 @@ body {
   align-self: flex-start;
 }
 .transf {
-  background: #aaa;
+  background: rgba(207, 207, 207, 0.568);
   margin-top: 10px;
   border-radius: 10px;
   padding: 5px;
@@ -1944,7 +2084,11 @@ body {
   align-items: center;
   justify-content: center;
   width: 95%;
+  text-align: center;
   align-self: center;
+}
+.transf div {
+  margin: auto;
 }
 .messageContainer {
   display: flex;
@@ -1952,7 +2096,7 @@ body {
   width: 100% !important;
   padding: 0 20px !important;
   overflow: scroll;
-  max-height: 810px;
+  max-height: 790px;
 }
 .chatPainel {
   height: 50px;
@@ -1963,7 +2107,7 @@ body {
   width: 100%;
 }
 .chatDropdown {
-  position: relative !important;
+  text-align: right;
 }
 .chatDropdown button {
   padding: 0 !important;
