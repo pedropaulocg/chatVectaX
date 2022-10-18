@@ -1,64 +1,51 @@
 <!-- 
-    adicionar switch de on/off
-    adicionar arquivo em agendar mensagem
-    adicionar badge em conexão departamento e usuario
-    aumentar tabs
-    remover detalhes do perfil
-    descer 3 botões para o lado de buscar
-    add ver todos
-    copiar chat 2
- -->
+  add arquivo em atalho
+-->
 <template>
   <b-row>
     <b-col
       lg="3"
-      class="p-0"
+      class="pr-0"
       style="border-right: 1px solid #c1c1c1 !important"
     >
       <div class="d-flex align-items-center justify-content-between p-2">
-        <button class="buttonNavchat novoCtt" variant="transparent">
+        <button
+          class="buttonNavchat novoCtt"
+          variant="transparent"
+          @click="addEspera"
+        >
           <b-icon icon="plus-lg" font-scale="2rem"></b-icon>
           <span> Novo Contato</span>
         </button>
-        <div class="d-flex gap-2 p-2">
-          <b-avatar variant="info" :src="avatarImg" size="4rem"></b-avatar>
-          <div>
-            <h5 class="m-0">Atendente 1</h5>
-            <p>
-              Online
-              <b-icon
-                icon="circle-fill"
-                variant="success"
-                font-scale="0.5"
-              ></b-icon>
-            </p>
+      </div>
+      <div class="d-flex justify-content-between">
+        <div class="d-flex align-items-center">
+          <div class="ml-3">
+            <p class="m-0 text-secondary">Ver como:</p>
+            <h6 class="m-0">Atendente</h6>
           </div>
         </div>
-        <b-dropdown
-          size="lg"
-          variant="transparent"
-          toggle-class="text-decoration-none"
-          no-caret
-          class="removeBorder"
-        >
-          <template #button-content>
-            <b-icon icon="three-dots-vertical"></b-icon>
-          </template>
-          <b-dropdown-item>
-            <button class="btnSideMenu" @click="$bvModal.show('atalhos')">
-              <b-icon icon="box-arrow-up-right"></b-icon> Atalhos
-            </button>
-          </b-dropdown-item>
-          <b-dropdown-item>
-            <button class="btnSideMenu">
-              <b-icon icon="chat-left-quote"></b-icon> Mensagens de ausência
-            </button>
-          </b-dropdown-item>
-        </b-dropdown>
+        <b-button-group class="mr-3">
+          <b-button
+            @click="statusUser = !statusUser"
+            class="ml-2"
+            :variant="statusUser ? 'success' : 'danger'"
+            size="sm"
+          >
+            <h6 class="mb-0">{{ statusUser ? "Online" : "Offline" }}</h6>
+          </b-button>
+          <b-dropdown right :variant="statusUser ? 'success' : 'danger'">
+            <b-dropdown-item>
+              <button class="btnSideMenu" @click="$bvModal.show('perfilAtt')">
+                <b-icon icon="person-circle"></b-icon> Perfil do atendente
+              </button>
+            </b-dropdown-item>
+          </b-dropdown>
+        </b-button-group>
       </div>
-      <div class="p-3">
+      <div class="p-3 d-flex">
         <b-input-group class="mt-1">
-          <b-form-input></b-form-input>
+          <b-form-input size="lg"></b-form-input>
           <b-input-group-append>
             <b-button
               style="
@@ -75,14 +62,35 @@
           </b-input-group-append>
         </b-input-group>
       </div>
-
-      <b-tabs active-nav-item-class="bg-primary text-light" class="mt-3" fill>
+      <b-form-checkbox
+        v-model="checked"
+        class="ml-3"
+        name="check-button"
+        size="lg"
+        switch
+      >
+        Todos
+      </b-form-checkbox>
+      <b-tabs
+        active-nav-item-class="bg-primary text-light notificationColor"
+        class="mt-3"
+        :class="statusUser ? '' : 'offFilter'"
+        fill
+      >
         <b-tab active>
           <template #title>
-            <b-icon icon="check-circle"></b-icon> Ativos
-            <span class="badge bg-light text-dark ms-1">4</span>
+            <b-icon icon="check-circle" font-scale="2rem"></b-icon>
+            <div>
+              Ativos
+              <span
+                class="badge bg-primary text-light ml-2"
+                v-if="numberOfActive"
+                >{{ numberOfActive }}</span
+              >
+            </div>
           </template>
           <div class="contactContainer">
+            <p v-if="!numberOfActive">Nenhuma conversa ativa</p>
             <div
               class="d-flex gap-2 p-3 justify-content-between"
               v-for="conversa in conversas"
@@ -93,17 +101,18 @@
                 cursor: pointer;
                 max-height: 80px;
               "
-              :style="'box-shadow: inset 1.3em 0 ' + conversa.departamentoColor"
+              :class="conversa.isOpen ? 'aberto' : ''"
+              :style="'box-shadow: inset 0.5em 0 ' + conversa.departamentoColor"
               @mouseenter="conversa.showDropdown = !conversa.showDropdown"
               @mouseleave="conversa.showDropdown = !conversa.showDropdown"
             >
               <div class="d-flex align-items-center">
                 <div class="d-flex align-items-end">
-                  <b-avatar
-                    variant="info"
+                  <img
                     :src="avatarImg"
-                    size="4rem"
-                  ></b-avatar>
+                    alt=""
+                    style="width: 60px; border-radius: 10px"
+                  />
                   <img
                     src="./assets/wppLogo.svg"
                     alt=""
@@ -148,26 +157,37 @@
         </b-tab>
 
         <b-tab>
-          <template #title> <b-icon icon="alarm"></b-icon> Em espera </template>
-          <p class="p-3">Tab contents 1</p>
+          <template #title>
+            <b-icon icon="alarm" font-scale="2rem"></b-icon>
+            <div>
+              Em espera
+              <span
+                class="badge bg-primary text-light ml-2"
+                v-if="countEspera"
+                >{{ countEspera }}</span
+              >
+            </div>
+          </template>
         </b-tab>
 
         <b-tab>
           <template #title>
-            <b-icon icon="person-circle"></b-icon> Contatos
+            <b-icon icon="person-circle" font-scale="2rem"></b-icon>
+            <div>Contatos</div>
           </template>
           <p class="p-3">Tab contents 1</p>
         </b-tab>
 
         <b-tab>
           <template #title>
-            <b-icon icon="inboxes"></b-icon> Chat interno
+            <b-icon icon="inboxes" font-scale="2rem"></b-icon>
+            <div>Chat interno</div>
           </template>
           <p class="p-3">Tab contents 1</p>
         </b-tab>
       </b-tabs>
     </b-col>
-    <b-col lg="9" class="p-0" style="overflow: hidden !important">
+    <b-col lg="9" class="pl-0" style="overflow: hidden !important">
       <div class="noChat" v-if="!chatOpen"></div>
       <div v-else class="p-0 bg-light p-0 chat">
         <div
@@ -176,7 +196,11 @@
           @click="openSideMenu('info')"
         >
           <div class="d-flex align-items-center gap-2">
-            <b-avatar :src="avatarImg" size="4rem"></b-avatar>
+            <img
+              :src="avatarImg"
+              alt=""
+              style="width: 60px; border-radius: 10px"
+            />
             <div>
               <h6 class="m-1">Wanderley</h6>
               <p>
@@ -215,7 +239,11 @@
               <b-icon icon="plug-fill"></b-icon>
               <span> Integrações</span>
             </b-button>
-            <b-button class="buttonNavchat" variant="transparent" @click.stop>
+            <b-button
+              class="buttonNavchat"
+              variant="transparent"
+              @click.stop="openSideMenu('funil')"
+            >
               <b-icon icon="funnel-fill"></b-icon>
               <span> Funil</span>
             </b-button>
@@ -246,82 +274,79 @@
               <div
                 v-for="mensagem in reverterMsg"
                 :key="mensagem.id"
+                class="d-flex align-items-start gap-1"
                 :class="msgType(mensagem.tipo)"
+                @mouseenter="mensagem.showDrop = true"
+                @mouseleave="mensagem.showDrop = false"
               >
-                <b class="m-0" v-if="mensagem.title">{{ mensagem.title }}</b>
-                <p class="m-0" v-else>{{ mensagem.texto }}</p>
-                <p class="m-0" v-if="mensagem.obs">
-                  {{ mensagem.obs }} - {{ mensagem.data }} {{ mensagem.hora }}
-                </p>
-                <p class="m-0" v-else style="text-align: right">
-                  {{ mensagem.hora }}
-                </p>
+                <div>
+                  <b class="m-0" v-if="mensagem.title">{{ mensagem.title }}</b>
+                  <p class="m-0" v-if="!mensagem.title">{{ mensagem.texto }}</p>
+                  <p class="m-0" v-if="mensagem.obs">
+                    {{ mensagem.obs }} - {{ mensagem.data }} {{ mensagem.hora }}
+                  </p>
+                  <a
+                    :href="mensagem.path"
+                    download
+                    class="file"
+                    v-if="mensagem.isFile"
+                  >
+                    <b-icon icon="file-earmark" font-scale="3rem"></b-icon>
+                    <h5>{{ mensagem.fileName }}</h5>
+                    <b-icon
+                      icon="arrow-down-circle"
+                      font-scale="2rem"
+                      variant="light"
+                    ></b-icon>
+                  </a>
+                  <div
+                    class="imgMsg"
+                    @click="viewMidia(mensagem.imgPath)"
+                    v-if="mensagem.isImage"
+                    :style="`background-image: url(${mensagem.imgPath})`"
+                  ></div>
+                  <p class="m-0" v-if="!mensagem.obs" style="text-align: right">
+                    {{ mensagem.hora }}
+                  </p>
+                </div>
+                <b-dropdown
+                  v-if="!mensagem.title && mensagem.showDrop"
+                  size="md"
+                  variant="transparent"
+                  class="chatDropdown"
+                  toggle-class="text-decoration-none"
+                >
+                  <b-dropdown-item @click="responder(mensagem.texto)"
+                    ><b-icon icon="arrow-return-right"></b-icon>
+                    Responder</b-dropdown-item
+                  >
+                  <b-dropdown-item
+                    ><b-icon icon="trash"></b-icon> Encaminhar</b-dropdown-item
+                  >
+                </b-dropdown>
               </div>
             </div>
             <div class="chatPainel">
-              <div class="chatMenuPainel">
-                <ul v-if="painelMenu">
-                  <li>
-                    <b-button
-                      pill
-                      class="buttonNavchat"
-                      style="border: none !important"
-                    >
-                      <b-icon icon="link45deg"></b-icon>
-                    </b-button>
-                  </li>
-                  <li>
-                    <b-button
-                      pill
-                      class="buttonNavchat"
-                      style="border: none !important"
-                    >
-                      <b-icon icon="list"></b-icon>
-                    </b-button>
-                  </li>
-                  <li>
-                    <b-button
-                      pill
-                      class="buttonNavchat"
-                      style="border: none !important"
-                    >
-                      <b-icon icon="list-check"></b-icon>
-                    </b-button>
-                  </li>
-                  <li>
-                    <b-button
-                      pill
-                      class="buttonNavchat"
-                      style="border: none !important"
-                    >
-                      <b-icon icon="hash"></b-icon>
-                    </b-button>
-                  </li>
-                  <li>
-                    <b-button
-                      pill
-                      class="buttonNavchat"
-                      style="border: none !important"
-                    >
-                      <b-icon icon="image"></b-icon>
-                    </b-button>
-                  </li>
-                </ul>
-                <b-button variant="primary" @click="painelMenu = !painelMenu">
+              <div class="resposta" v-if="isResposta">
+                <h5>
+                  Wanderley
                   <b-icon
-                    icon="paperclip"
-                    style="color: #fff"
-                    rotate="40"
+                    icon="x"
+                    style="cursor: pointer"
+                    @click="isResposta = false"
                   ></b-icon>
-                </b-button>
+                </h5>
+                <p>
+                  {{ mensagemRespondida }}
+                </p>
               </div>
-              <b-button variant="primary">
-                <b-icon icon="emoji-smile" style="color: #fff"></b-icon>
+              <b-button variant="transparent" @click="$bvModal.show('atalhos')">
+                <b-icon
+                  icon="lightning-charge"
+                  style="color: #868686"
+                  font-scale="2rem"
+                ></b-icon>
               </b-button>
-              <b-button variant="primary" @click="isNote = !isNote">
-                <b-icon icon="file-text" style="color: #fff"></b-icon>
-              </b-button>
-
               <b-form-input
                 v-if="isNote"
                 class="bg-warning"
@@ -335,15 +360,100 @@
                 v-model="message"
                 @keydown.enter="sendMessage(true)"
               ></b-form-input>
+
+              <b-button variant="transparent" @click="isNote = !isNote">
+                <b-icon
+                  icon="file-text"
+                  style="color: #868686"
+                  font-scale="2rem"
+                ></b-icon>
+              </b-button>
+
+              <b-button variant="transparent">
+                <b-icon
+                  icon="emoji-smile"
+                  style="color: #868686"
+                  font-scale="2rem"
+                ></b-icon>
+              </b-button>
+              <div class="chatMenuPainel">
+                <ul v-if="painelMenu">
+                  <li>
+                    <b-button
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="link45deg"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="list"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="list-check"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <b-button
+                      class="buttonNavchat"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="hash"></b-icon>
+                    </b-button>
+                  </li>
+                  <li>
+                    <label
+                      class="buttonNavchat btn pill"
+                      style="border: none !important"
+                    >
+                      <b-icon icon="image"></b-icon>
+                      <input
+                        type="file"
+                        @change="previewFile"
+                        style="display: none"
+                      />
+                    </label>
+                  </li>
+                </ul>
+                <b-button
+                  variant="transparent"
+                  @click="painelMenu = !painelMenu"
+                >
+                  <b-icon
+                    icon="paperclip"
+                    style="color: #868686"
+                    font-scale="2rem"
+                    rotate="40"
+                  ></b-icon>
+                </b-button>
+              </div>
+
               <b-button
-                variant="primary"
+                variant="transparent"
                 v-if="message || nota"
                 @click="message ? sendMessage(true) : sendMessage(false)"
               >
-                <b-icon icon="cursor" style="color: #fff"></b-icon>
+                <b-icon
+                  icon="cursor"
+                  style="color: #868686"
+                  font-scale="2rem"
+                ></b-icon>
               </b-button>
-              <b-button variant="primary" v-else>
-                <b-icon icon="mic" style="color: #fff"></b-icon>
+              <b-button variant="transparent" v-else>
+                <b-icon
+                  icon="mic"
+                  style="color: #868686"
+                  font-scale="2rem"
+                ></b-icon>
               </b-button>
             </div>
             <div class="atalhoShow" v-if="showAtalhoMenu">
@@ -383,6 +493,49 @@
                 title="W3Schools Free Online Web Tutorials"
                 fullscreen
               ></iframe>
+            </div>
+            <div v-if="funil">
+              <div>
+                <b-icon
+                  icon="x-lg"
+                  @click="infoOpen = false"
+                  style="cursor: pointer"
+                ></b-icon>
+              </div>
+              <div class="p-4">
+                <div
+                  class="
+                    d-flex
+                    justify-content-between
+                    align-items-end
+                    funil
+                    mt-4
+                  "
+                  v-for="funil in fluxos"
+                  :key="funil.id"
+                >
+                  <div>
+                    <h2>{{ funil.nome }}</h2>
+                    <p>
+                      <b-icon icon="person-check-fill"></b-icon>
+                      {{ funil.users }}
+                    </p>
+                  </div>
+                  <b-button
+                    class="buttonNavchat"
+                    variant="transparent"
+                    v-if="!funil.used"
+                    @click="funil.used = true"
+                  >
+                    <b-icon icon="plus"></b-icon>
+                    <span> Adicionar</span>
+                  </b-button>
+                  <b-button variant="danger" v-else @click="funil.used = false">
+                    <b-icon icon="x"></b-icon>
+                    <span> Remover</span>
+                  </b-button>
+                </div>
+              </div>
             </div>
             <div v-if="buscar" class="p-3">
               <div>
@@ -462,7 +615,6 @@
                 <b-form-select
                   v-model="selectedStatus"
                   :options="optionStatus"
-                  placeholder="Selecione uma opção"
                   style="
                     border: 1px solid #b7b7b7;
                     width: 100%;
@@ -501,7 +653,10 @@
                 "
                 @click="$bvModal.show('modalMidia')"
               >
-                <h5><b-icon icon="card-image"></b-icon> Mídias</h5>
+                <div class="d-flex justify-content-between">
+                  <h5><b-icon icon="card-image"></b-icon> Mídias</h5>
+                  <small>ver tudo</small>
+                </div>
                 <div class="midias d-flex justify-content-around mt-2">
                   <b-img
                     rounded
@@ -559,11 +714,13 @@
         </div>
       </div>
     </b-col>
+    <!-- Fim da tela direita -->
 
     <!-- Modal campo personalizado -->
 
     <b-modal id="modalCamposPersonalizados" size="lg">
       <template #modal-header="{ close }">
+        <h3>Adicionar campos personalizados</h3>
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -657,7 +814,19 @@
     <!-- Modal de atalhos -->
     <b-modal id="atalhos" centered size="lg">
       <template #modal-header="{ close }">
-        <h3>Atalhos</h3>
+        <h3>
+          Atalhos
+          <b-button
+            class="buttonNavchat ml-2"
+            variant="transparent"
+            style="background: #054d86 !important; color: #fff !important"
+            @click="$bvModal.show('addAtalho')"
+          >
+            <b-icon icon="plus"></b-icon>
+            <span> Adicionar</span>
+          </b-button>
+        </h3>
+
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -678,22 +847,18 @@
                 <b-button @click="deleteAtalho(row.index)" variant="primary"
                   ><b-icon icon="trash"></b-icon
                 ></b-button>
-                <b-button @click="teste(row.index)" variant="primary"
+                <b-button
+                  @click="
+                    editAtalho(row.index);
+                    $bvModal.show('addAtalho');
+                  "
+                  variant="primary"
                   ><b-icon icon="pencil"></b-icon
                 ></b-button>
               </div>
             </template>
           </b-table>
         </div>
-        <b-button
-          class="buttonNavchat"
-          variant="transparent"
-          style="background: #054d86 !important; color: #fff !important"
-          @click="$bvModal.show('addAtalho')"
-        >
-          <b-icon icon="plus"></b-icon>
-          <span> Adicionar</span>
-        </b-button>
       </div>
       <template #modal-footer="{ ok }">
         <b-button
@@ -707,21 +872,50 @@
       </template>
     </b-modal>
     <!-- Adicionar atalho -->
-    <b-modal id="addAtalho" centered size="md">
+    <b-modal
+      id="addAtalho"
+      centered
+      size="md"
+      no-close-on-backdrop
+      no-close-on-esc
+    >
       <template #modal-header="{ close }">
         <h3>Adicionar atalho</h3>
-        <b-button size="sm" variant="outline-danger" @click="close()">
+        <b-button
+          size="sm"
+          variant="outline-danger"
+          @click="
+            close();
+            isEditingAtalho = false;
+          "
+        >
           <b-icon icon="x"></b-icon>
         </b-button>
       </template>
       <div>
         <b-form-input
           class="mb-3"
+          v-if="isEditingAtalho"
+          v-model="editAtalhoCode"
+          placeholder="Atalho"
+        ></b-form-input>
+        <b-form-input
+          class="mb-3"
+          v-else
           v-model="newAtalho"
           placeholder="Atalho"
         ></b-form-input>
         <b-form-textarea
           id="textarea"
+          v-if="isEditingAtalho"
+          v-model="editAtalhoMsg"
+          placeholder="Mensagem"
+          rows="3"
+          max-rows="6"
+        ></b-form-textarea>
+        <b-form-textarea
+          id="textarea"
+          v-else
           v-model="newMsgAtalho"
           placeholder="Mensagem"
           rows="3"
@@ -734,18 +928,29 @@
           variant="primary"
           style="color: #fff !important"
           @click="
+            isEditingAtalho ? saveAtalho() : createAtalho();
             ok();
-            createAtalho();
           "
         >
-          Adicionar
+          Confirmar
         </b-button>
       </template>
     </b-modal>
     <!-- Mensagens agendadas -->
     <b-modal id="msgAgendada" centered size="xl">
       <template #modal-header="{ close }">
-        <h3>Mensagens agendadas</h3>
+        <h3 class="ml-2">
+          Mensagens agendadas
+          <b-button
+            class="buttonNavchat"
+            style="background: #054d86 !important; color: #fff !important"
+            variant="transparent"
+            @click="$bvModal.show('addAgendamento')"
+          >
+            <b-icon icon="plus"></b-icon>
+            <span> Adicionar</span>
+          </b-button>
+        </h3>
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -793,15 +998,6 @@
             </template>
           </b-table>
         </div>
-        <b-button
-          class="buttonNavchat"
-          style="background: #054d86 !important; color: #fff !important"
-          variant="transparent"
-          @click="$bvModal.show('addAgendamento')"
-        >
-          <b-icon icon="plus"></b-icon>
-          <span> Adicionar</span>
-        </b-button>
       </div>
       <template #modal-footer="{ ok }">
         <b-button
@@ -882,8 +1078,8 @@
           </select>
         </b-col>
       </b-row>
+      <label style="font-size: 16px" class="mt-2">Data e hora</label>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Data e hora</p>
         <b-col lg="6">
           <b-form-datepicker
             id="example-datepicker"
@@ -898,8 +1094,8 @@
           ></b-form-timepicker>
         </b-col>
       </b-row>
+      <label style="font-size: 16px" class="mt-2">Mensagem</label>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Mensagem</p>
         <b-col lg="12">
           <b-form-textarea
             id="mensgemAgendada"
@@ -910,12 +1106,14 @@
           ></b-form-textarea>
         </b-col>
       </b-row>
+      <p style="font-size: 16px" class="mt-2">Arquivo</p>
       <b-row cols="12" class="mt-2">
-        <p style="font-size: 16px">Arquivo</p>
         <b-col lg="12">
-          <b-form-group label="Small:" label-cols-sm="2" label-size="sm">
-            <b-form-file id="file-small" size="sm"></b-form-file>
-          </b-form-group>
+          <b-form-file
+            id="fileAgendar"
+            size="md"
+            placeholder="Selecione um arquivo"
+          ></b-form-file>
         </b-col>
       </b-row>
       <template #modal-footer="{ ok }">
@@ -956,6 +1154,14 @@
             {{ att.text }}
           </option>
         </select>
+
+        <b-form-textarea
+          class="mt-4"
+          v-model="obsFinalizar"
+          placeholder="Observação..."
+          rows="3"
+          max-rows="6"
+        ></b-form-textarea>
       </div>
       <template #modal-footer="{ ok }">
         <b-button
@@ -971,6 +1177,7 @@
     <!-- Modal midias -->
     <b-modal id="modalMidia" size="lg" no-close-on-esc>
       <template #modal-header="{ close }">
+        <h3>Mídias</h3>
         <b-button size="sm" variant="outline-danger" @click="close()">
           <b-icon icon="x"></b-icon>
         </b-button>
@@ -1001,25 +1208,79 @@
         </b-button>
       </template>
     </b-modal>
+    <b-modal id="perfilAtt" size="md">
+      <template #modal-header="{ close }">
+        <h3>Perfil do atendente</h3>
+        <b-button size="sm" variant="outline-danger" @click="close()">
+          <b-icon icon="x"></b-icon>
+        </b-button>
+      </template>
+      <div class="d-flex align-items-start gap-4">
+        <img
+          :src="avatarImg"
+          alt=""
+          style="width: 100px; border-radius: 10px"
+        />
+        <div>
+          <div class="d-flex align-items-center">
+            <h3>Atendente</h3>
+            <b-button
+              @click="statusUser = !statusUser"
+              class="ml-2"
+              :variant="statusUser ? 'success' : 'danger'"
+              size="sm"
+              ><b-icon icon="power"></b-icon
+            ></b-button>
+          </div>
+          <p class="m-0">Mensagem de ausência</p>
+          <b-form-select
+            v-model="msgAusenciaSelected"
+            :options="msgAusencia"
+          ></b-form-select>
+        </div>
+      </div>
+      <template #modal-footer="{ ok }">
+        <b-button
+          size="sm"
+          variant="primary"
+          style="color: #fff !important"
+          @click="ok()"
+        >
+          OK
+        </b-button>
+      </template>
+    </b-modal>
 
     <div class="overflow" v-if="openMidia >= 0" @click="openMidia = undefined">
       <div class="imgPreview">
         <img :src="midias[openMidia].src" alt="" />
       </div>
     </div>
+    <div class="overflow" v-if="viewChatMidia" @click="viewChatMidia = false">
+      <div class="imgPreview">
+        <img :src="selectedMidia" alt="" />
+      </div>
+    </div>
   </b-row>
 </template>
 
 <script>
+const notificationAudio = new Audio(require("./assets/conquista.mp3"));
 export default {
   name: "App",
 
   data: () => ({
     chatOpen: true,
     isNote: false,
+    msgTransf: undefined,
+    onlineStatus: false,
     newAtalho: undefined,
+    viewChatMidia: false,
+    selectedMidia: undefined,
     newMsgAtalho: undefined,
+    checked: false,
     nota: undefined,
+    obsFinalizar: undefined,
     departamentoModal: undefined,
     atendenteModal: undefined,
     infoOpen: true,
@@ -1032,7 +1293,30 @@ export default {
     openMidia: undefined,
     selectedStatus: undefined,
     statusShadow: undefined,
+    isEditingAtalho: false,
+    editAtalhoCode: undefined,
+    editAtalhoMsg: undefined,
+    statusUser: true,
+    funil: false,
+    editAtalhoIndex: 0,
+    countEspera: 0,
+    msgAusenciaSelected: null,
     avatarImg: "http://www.colatina.es.gov.br/helpdesk/images/no-image.png",
+    fluxos: [
+      { id: Math.random(), nome: "Teste 1", users: 17, used: true },
+      { id: Math.random(), nome: "Teste 2", users: 2, used: false },
+      { id: Math.random(), nome: "Teste 3", users: 5, used: true },
+      { id: Math.random(), nome: "Teste 4", users: 80, used: false },
+    ],
+    msgAusencia: [
+      {
+        text: "Nenhuma mensagem de ausencia selecionada",
+        value: null,
+      },
+      { text: "Mensagem teste ausencia 1", value: "first" },
+      { text: "Mensagem teste ausencia 2", value: "second" },
+      { text: "Cadastrar nova mensagem", value: "add" },
+    ],
     finalizarAt: [
       { value: "opcao_1", text: "opção 1" },
       { value: "opcao_2", text: "opção 2" },
@@ -1231,6 +1515,7 @@ export default {
         notificacao: "3",
         showDropdown: false,
         departamentoColor: "cyan",
+        isOpen: true,
       },
       {
         id: Math.random(),
@@ -1370,6 +1655,7 @@ export default {
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
         tipo: "enviada",
         hora: "18:56",
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1377,6 +1663,7 @@ export default {
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
         tipo: "recebida",
         hora: "18:56",
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1384,6 +1671,7 @@ export default {
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
         tipo: "recebida",
         hora: "18:56",
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1391,6 +1679,7 @@ export default {
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
         tipo: "enviada",
         hora: "18:56",
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1398,6 +1687,7 @@ export default {
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
         tipo: "nota",
         hora: "18:56",
+        showDrop: false,
       },
       {
         id: Math.random(),
@@ -1407,7 +1697,27 @@ export default {
         data: "16/09/2022",
         hora: "18:56",
       },
+      {
+        id: Math.random(),
+        isFile: true,
+        fileName: "logoClick.png",
+        path: "./assets/logoClick.png",
+        tipo: "enviada",
+        hora: "18:56",
+        showDrop: false,
+      },
+      {
+        id: Math.random(),
+        isImage: true,
+        imgPath:
+          "data:image/jpeg;base64,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",
+        tipo: "enviada",
+        showDrop: false,
+        hora: "18:56",
+      },
     ],
+    isResposta: false,
+    mensagemRespondida: undefined,
   }),
   methods: {
     addCampo() {
@@ -1417,11 +1727,19 @@ export default {
         valor: undefined,
       });
     },
+    responder(item) {
+      this.isResposta = true;
+      this.mensagemRespondida = item;
+    },
     removeCampo(pos) {
       this.camposPersonalizados.splice(pos, 1);
     },
     selectMidia(pos) {
       this.openMidia = pos;
+    },
+    viewMidia(item) {
+      this.selectedMidia = item;
+      this.viewChatMidia = true;
     },
     replaceAtalho(codigo) {
       for (let i = 0; i < this.atalhos.length; i++) {
@@ -1436,16 +1754,25 @@ export default {
       if (this.infoOpen) {
         if (menu == "buscar") {
           this.buscar = true;
+          this.funil = false;
           this.integracao = false;
           this.infoContato = false;
         }
         if (menu == "integracao") {
           this.integracao = true;
+          this.funil = false;
           this.infoContato = false;
           this.buscar = false;
         }
         if (menu == "info") {
           this.infoContato = true;
+          this.funil = false;
+          this.integracao = false;
+          this.buscar = false;
+        }
+        if (menu == "funil") {
+          this.funil = true;
+          this.infoContato = false;
           this.integracao = false;
           this.buscar = false;
         }
@@ -1458,11 +1785,19 @@ export default {
         }
         if (menu == "integracao") {
           this.integracao = true;
+          this.funil = false;
           this.infoContato = false;
           this.buscar = false;
         }
         if (menu == "info") {
+          this.funil = false;
           this.infoContato = true;
+          this.integracao = false;
+          this.buscar = false;
+        }
+        if (menu == "funil") {
+          this.funil = true;
+          this.infoContato = false;
           this.integracao = false;
           this.buscar = false;
         }
@@ -1535,6 +1870,27 @@ export default {
     deleteAtalho(item) {
       this.atalhos.splice(item, 1);
     },
+    editAtalho(item) {
+      this.isEditingAtalho = true;
+      this.editAtalhoIndex = item;
+      this.editAtalhoCode = this.atalhos[item].codigo;
+      this.editAtalhoMsg = this.atalhos[item].mensagem;
+    },
+    saveAtalho() {
+      this.atalhos[this.editAtalhoIndex].codigo = this.editAtalhoCode;
+      this.atalhos[this.editAtalhoIndex].codigo = this.editAtalhoMsg;
+      this.editAtalhoIndex = 0;
+      this.isEditingAtalho = false;
+      console.log(this.atalhos);
+    },
+    addEspera() {
+      this.countEspera++;
+    },
+    /* previewFile(e) {
+      let file = e.target.files[0];
+      console.log(file);
+      this.fileName = file.name;
+    }, */
   },
   computed: {
     previewMidias() {
@@ -1551,8 +1907,15 @@ export default {
       }
       return orderedMsg;
     },
+    numberOfActive() {
+      return this.conversas.length;
+    },
   },
   watch: {
+    msgAusenciaSelected() {},
+    countEspera() {
+      notificationAudio.play();
+    },
     message() {
       if (this.message.indexOf("/") >= 0) {
         this.showAtalhoMenu = true;
@@ -1604,6 +1967,13 @@ export default {
   background: rgb(201, 201, 201);
   border-radius: 5px;
 }
+button:active,
+button:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 html {
   font-size: 0.8rem !important;
   overflow: hidden !important;
@@ -1615,6 +1985,10 @@ body {
   border: none !important;
   outline: none !important;
   border-color: transparent !important;
+}
+.notificationColor span {
+  background: #fff !important;
+  color: #000 !important;
 }
 .removeBorder button:hover {
   border: none !important;
@@ -1635,32 +2009,37 @@ body {
 }
 .btnSideMenu {
   color: #054d86;
-  width: 100%;
-  display: block;
-  transition: 0.3s;
   border: none;
   background: inherit;
 }
 
 .buttonNavchat {
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   background: #fff !important;
   color: #054d86 !important;
-  max-width: 38px;
   border: none !important;
   white-space: nowrap;
   overflow: hidden;
-  transition: 0.7s !important;
+  transition: 0.3s !important;
+  border: 1px solid #054c866b !important;
 }
-.buttonNavchat span {
+.buttonNavchat:hover {
+  background: #054d86 !important;
+  color: #fff !important;
+}
+.novoCtt span {
   visibility: hidden;
   transition: 0.7s;
 }
-.buttonNavchat:hover {
+.novoCtt:hover {
   max-width: 200px;
   border: none !important;
 }
-.buttonNavchat:hover span {
+.funil {
+  box-shadow: 1px 1px 4px rgb(139, 139, 139);
+  padding: 10px;
+  border-radius: 5px;
+}
+.novoCtt:hover span {
   visibility: visible;
 }
 .chat {
@@ -1696,7 +2075,7 @@ body {
   align-self: flex-start;
 }
 .transf {
-  background: #9dd7ff;
+  background: rgba(207, 207, 207, 0.568);
   margin-top: 10px;
   border-radius: 10px;
   padding: 5px;
@@ -1705,7 +2084,11 @@ body {
   align-items: center;
   justify-content: center;
   width: 95%;
+  text-align: center;
   align-self: center;
+}
+.transf div {
+  margin: auto;
 }
 .messageContainer {
   display: flex;
@@ -1713,7 +2096,7 @@ body {
   width: 100% !important;
   padding: 0 20px !important;
   overflow: scroll;
-  max-height: 810px;
+  max-height: 790px;
 }
 .chatPainel {
   height: 50px;
@@ -1721,24 +2104,32 @@ body {
   align-items: flex-end;
   padding: 10px 20px;
   background: #fff;
-  gap: 1rem;
   width: 100%;
+}
+.chatDropdown {
+  text-align: right;
+}
+.chatDropdown button {
+  padding: 0 !important;
 }
 .lowChat {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 }
+.aberto {
+  background: #0099ff6c;
+}
 .novoCtt {
   position: absolute;
   z-index: 99;
-  top: 90%;
-  left: 0%;
+  top: 87%;
+  left: 10px;
   border-radius: 0 20px 20px 0 !important;
   max-width: 50px;
   background: #054d86 !important;
   color: #fff !important;
-  padding: 20px;
+  padding: 22px;
   padding-left: 10px !important;
 }
 .novoCtt span {
@@ -1772,7 +2163,7 @@ body {
 }
 .atalhoShow {
   position: absolute;
-  bottom: 50px;
+  bottom: 90px;
   background: #fff;
   margin-left: 150px;
   padding: 10px 0;
@@ -1790,6 +2181,35 @@ body {
 .atalhoShow li:hover {
   background: #f7f7f7;
 }
+.offFilter {
+  filter: grayscale(90%);
+}
+.file {
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.file:hover {
+  text-decoration: none;
+  color: #fff;
+}
+.imgMsg {
+  background-size: cover;
+  width: 230px;
+  height: 300px;
+}
+.resposta {
+  position: absolute;
+  bottom: 90px;
+  padding: 10px;
+  border-radius: 10px;
+  margin-left: 3%;
+  background: #fff;
+  width: 60%;
+}
+
 @media (max-width: 1700px) {
   body {
     overflow: hidden !important;
@@ -1800,6 +2220,13 @@ body {
   }
   .preview {
     max-width: 150px;
+  }
+  .novoCtt {
+    left: 15px;
+    padding: 30px;
+  }
+  .atalhoShow {
+    bottom: 50px;
   }
   .messageContainer {
     max-height: 660px;
